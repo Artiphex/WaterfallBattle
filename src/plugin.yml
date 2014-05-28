@@ -1,0 +1,12 @@
+name: WaterFallBattle
+main: waterfallBattle.WaterfallBattle
+version: 0.8
+author: Alexander Rohde
+
+commands:
+  start:
+    description: Force starts the game
+    usage: /start
+  water:
+    description: Starts or stops the water supply
+    usage: /start [on/off]
