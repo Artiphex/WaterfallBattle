@@ -5,8 +5,6 @@ import java.util.Arrays;
 import java.util.Random;
 import java.util.logging.Logger;
 
-import javax.swing.text.MaskFormatter;
-
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Difficulty;
@@ -37,7 +35,7 @@ public class WaterfallBattle extends JavaPlugin {
 	private int startableDelay;
 	private int startDelay;
 	private WaterfallBattleScoreBoard score;
-	WaterfallBattleScoreBoard2 score2;
+	private WaterfallBattleScoreBoardTeams waterfallBattleScoreBoardTeams;
 	private IconMenu menu;
 	private IconMenu spectatorMenu;
 	private ArrayList<Location> blockLocations;
@@ -129,7 +127,7 @@ public class WaterfallBattle extends JavaPlugin {
 		});
 
 		setScore(new WaterfallBattleScoreBoard());
-		score2 = new WaterfallBattleScoreBoard2();
+		waterfallBattleScoreBoardTeams = new WaterfallBattleScoreBoardTeams();
 
 		PluginManager pluginManager = this.getServer().getPluginManager();
 		pluginManager.registerEvents(new JoinListener(this), this);
@@ -152,7 +150,8 @@ public class WaterfallBattle extends JavaPlugin {
 									send("You have chosen to be a "
 											+ event.getName(),
 											event.getPlayer());
-									score2.addPlayer(event.getPlayer());
+//									waterfallBattleScoreBoardTeams
+//											.addPlayer(event.getPlayer());
 								}
 							} else {
 								send("There are already 9 players you will be allocated to the observers.",
@@ -164,7 +163,8 @@ public class WaterfallBattle extends JavaPlugin {
 							}
 							send("You have chosen to be a " + event.getName(),
 									event.getPlayer());
-							score2.addSpectator(event.getPlayer());
+//							waterfallBattleScoreBoardTeams.addSpectator(event
+//									.getPlayer());
 						}
 
 						// event.getPlayer().setScoreboard(score2.getScoreboard());
@@ -325,6 +325,12 @@ public class WaterfallBattle extends JavaPlugin {
 
 		logger.info("[Waterfall Battle] v" + getDescription().getVersion()
 				+ " stopped");
+	}
+
+	public void lobby(Player player) {
+		resetPlayer(player);
+		player.teleport(lobbyLocation);
+		player.getInventory().addItem(getInformationBook());
 	}
 
 	public ItemStack getInformationBook() {
@@ -609,6 +615,55 @@ public class WaterfallBattle extends JavaPlugin {
 
 	public void setBlockLocations(ArrayList<Location> blockLocations) {
 		this.blockLocations = blockLocations;
+	}
+
+	public WaterfallBattleScoreBoardTeams getWaterfallBattleScoreBoardTeams() {
+		return waterfallBattleScoreBoardTeams;
+	}
+
+	public void setWaterfallBattleScoreBoardTeams(
+			WaterfallBattleScoreBoardTeams waterfallBattleScoreBoardTeams) {
+		this.waterfallBattleScoreBoardTeams = waterfallBattleScoreBoardTeams;
+	}
+
+	public ArrayList<ItemStack> getItems() {
+		return items;
+	}
+
+	public void setItems(ArrayList<ItemStack> items) {
+		this.items = items;
+	}
+
+	public ArrayList<Material> getMaterials() {
+		return materials;
+	}
+
+	public void setMaterials(ArrayList<Material> materials) {
+		this.materials = materials;
+	}
+
+	public double[] getWaterX() {
+		return waterX;
+	}
+
+	public void setWaterX(double[] waterX) {
+		this.waterX = waterX;
+	}
+
+	public double[] getWaterZ() {
+		return waterZ;
+	}
+
+	public void setWaterZ(double[] waterZ) {
+		this.waterZ = waterZ;
+	}
+
+	public int getCounter() {
+		return counter;
+	}
+
+	public void setCounter(int counter) {
+		this.counter = counter;
 	}
 
 }

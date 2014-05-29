@@ -38,10 +38,10 @@ public class WaterfallBattleScoreBoard {
 
 	public void update(Player player) {
 		if (player.getLocation().getY() < 0) {
-			scoreboard.resetScores(player.getName());
+			scoreboard.resetScores(player);
 			team.removePlayer(player);
 		} else {
-			objective.getScore(player.getName()).setScore(
+			objective.getScore(player).setScore(
 					(int) player.getLocation().getY());
 		}
 	}
@@ -54,7 +54,7 @@ public class WaterfallBattleScoreBoard {
 
 	public void reset(ArrayList<Player> players) {
 		for (Player player : players) {
-			scoreboard.resetScores(player.getPlayer().getName());
+			scoreboard.resetScores(player.getPlayer());
 			team.removePlayer(player.getPlayer());
 		}
 	}

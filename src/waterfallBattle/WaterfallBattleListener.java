@@ -100,26 +100,14 @@ public class WaterfallBattleListener implements Listener {
 		} else {
 			playerRespawnEvent.setRespawnLocation(waterfallBattle
 					.getLobbyLocation());
-			Bukkit.getServer().getScheduler()
-					.scheduleSyncDelayedTask(waterfallBattle, new Runnable() {
-
-						@Override
-						public void run() {
-							waterfallBattle.getMenu().open(
-									playerRespawnEvent.getPlayer());
-						}
-					});
 		}
 	}
 
 	@EventHandler
 	public void on(PlayerDeathEvent playerDeathEvent) {
-		if (waterfallBattle.getGameStatus() == GameStatus.Game) {
-			Player waterfallBattlePlayer = playerDeathEvent.getEntity()
-					.getPlayer();
+		Player waterfallBattlePlayer = playerDeathEvent.getEntity().getPlayer();
 
-			playerDeathEvent.setDeathMessage("§f[§bWaterfall Battle§f] §f"
-					+ waterfallBattlePlayer.getPlayer().getName() + " died.");
+		if (waterfallBattle.getGameStatus() == GameStatus.Game) {
 
 			waterfallBattle.getPlaying()
 					.remove(waterfallBattle.getPlaying().indexOf(
@@ -137,6 +125,16 @@ public class WaterfallBattleListener implements Listener {
 				waterfallBattle.makeSpectator(waterfallBattlePlayer);
 			}
 		}
+
+		if (waterfallBattle.getGameStatus() == GameStatus.Game
+				&& !waterfallBattle.getPlaying()
+						.contains(waterfallBattlePlayer)) {
+			playerDeathEvent.setDeathMessage("");
+		} else {
+			playerDeathEvent.setDeathMessage("§f[§bWaterfall Battle§f] §f"
+					+ waterfallBattlePlayer.getPlayer().getName() + " died.");
+		}
+
 	}
 
 	@EventHandler
@@ -212,7 +210,7 @@ public class WaterfallBattleListener implements Listener {
 				Player player = (Player) entityDamageByEntityEvent.getDamager();
 				if (!waterfallBattle.getPlaying().contains(player)) {
 					entityDamageByEntityEvent.setCancelled(true);
-				} else if (player.getItemInHand().getType() == Material.MAGMA_CREAM
+				} else if (player.getItemInHand().getType() == Material.BLAZE_ROD
 						|| player.getItemInHand().getType() == Material.STICK) {
 					if (player.getInventory().getItemInHand().getAmount() > 1) {
 						player.getInventory()

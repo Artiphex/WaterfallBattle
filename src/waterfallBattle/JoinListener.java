@@ -18,46 +18,34 @@ public class JoinListener implements Listener {
 	@EventHandler
 	public void onJoin(PlayerJoinEvent playerJoinEvent) {
 		final Player player = playerJoinEvent.getPlayer();
-		if (player.isOp()) {
-			waterfallBattle.score2.addArtiphex(player);
-		}
-		
-		player.setScoreboard(waterfallBattle.score2.getScoreboard());
+		// --
+//		player.setScoreboard(waterfallBattle
+//				.getWaterfallBattleScoreBoardTeams().getScoreboard());
+		// --
 
 		waterfallBattle.getPlayers().add(player);
-		playerJoinEvent.setJoinMessage("§f[§bWaterfall Battle§f] §f"
-				+ player.getName() + " joined the game. §f[§b"
-				+ String.valueOf(Bukkit.getOnlinePlayers().length - 1)
-				+ "§f|§b" + Bukkit.getMaxPlayers() + "§f]");
-
 		waterfallBattle.resetPlayer(player);
 
 		if (waterfallBattle.getGameStatus() == GameStatus.Lobby
 				|| waterfallBattle.getGameStatus() == GameStatus.Startable) {
-			player.teleport(waterfallBattle.getLobbyLocation());
+			waterfallBattle.lobby(player);
 		} else {
 			waterfallBattle.makeSpectator(player);
 		}
 
-		player.getInventory().addItem(waterfallBattle.getInformationBook());
-		waterfallBattle.send(
-				"Welcome to Waterfall-Battle an ArtiphexLP mini game.", player);
+		playerJoinEvent.setJoinMessage(Messages.get("waterfallBattleTag") + " "
+				+ playerJoinEvent.getPlayer().getName() + " "
+				+ Messages.get("joined") + " " + getPlayerCountString());
 	}
 
 	@EventHandler
 	public void onQuit(PlayerQuitEvent playerQuitEvent) {
 		Player player = playerQuitEvent.getPlayer();
-
 		waterfallBattle.getPlayers().remove(player);
 
 		if (waterfallBattle.getPlaying().contains(player)) {
 			waterfallBattle.getPlaying().remove(player);
 		}
-		playerQuitEvent.setQuitMessage("§f[§bWaterfall Battle§f] "
-				+ playerQuitEvent.getPlayer().getName()
-				+ " left the game. §f[§b"
-				+ String.valueOf(Bukkit.getOnlinePlayers().length - 1)
-				+ "§f|§b" + Bukkit.getMaxPlayers() + "§f]");
 
 		if (waterfallBattle.getGameStatus() == GameStatus.Game
 				|| waterfallBattle.getGameStatus() == GameStatus.Starting) {
@@ -65,15 +53,21 @@ public class JoinListener implements Listener {
 				if (waterfallBattle.getPlaying().size() > 0) {
 					waterfallBattle.send(waterfallBattle.getPlaying().get(0)
 							.getPlayer().getName()
-							+ " has won this round!");
+							+ " " + Messages.get("hasWon"));
 				}
 				waterfallBattle.resetGame();
 				waterfallBattle.setupGame();
 			}
-		} else {
-			waterfallBattle.setGameStatus(GameStatus.Lobby);
-			waterfallBattle.send("Start canceled");
 		}
+
+		playerQuitEvent.setQuitMessage(Messages.get("waterfallBattleTag") + " "
+				+ playerQuitEvent.getPlayer().getName() + " "
+				+ Messages.get("left") + " " + getPlayerCountString());
+	}
+
+	private String getPlayerCountString() {
+		return "§f[§b" + String.valueOf(Bukkit.getOnlinePlayers().length)
+				+ "§f|§b" + Bukkit.getMaxPlayers() + "§f]";
 	}
 
 	public WaterfallBattle getWaterfallBattle() {
