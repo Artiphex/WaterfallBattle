@@ -35,7 +35,6 @@ public class WaterfallBattle extends JavaPlugin {
 	private int startableDelay;
 	private int startDelay;
 	private WaterfallBattleScoreBoard score;
-	private WaterfallBattleScoreBoardTeams waterfallBattleScoreBoardTeams;
 	private IconMenu menu;
 	private IconMenu spectatorMenu;
 	private ArrayList<Location> blockLocations;
@@ -127,7 +126,6 @@ public class WaterfallBattle extends JavaPlugin {
 		});
 
 		setScore(new WaterfallBattleScoreBoard());
-		waterfallBattleScoreBoardTeams = new WaterfallBattleScoreBoardTeams();
 
 		PluginManager pluginManager = this.getServer().getPluginManager();
 		pluginManager.registerEvents(new JoinListener(this), this);
@@ -150,8 +148,8 @@ public class WaterfallBattle extends JavaPlugin {
 									send("You have chosen to be a "
 											+ event.getName(),
 											event.getPlayer());
-//									waterfallBattleScoreBoardTeams
-//											.addPlayer(event.getPlayer());
+									// waterfallBattleScoreBoardTeams
+									// .addPlayer(event.getPlayer());
 								}
 							} else {
 								send("There are already 9 players you will be allocated to the observers.",
@@ -163,8 +161,8 @@ public class WaterfallBattle extends JavaPlugin {
 							}
 							send("You have chosen to be a " + event.getName(),
 									event.getPlayer());
-//							waterfallBattleScoreBoardTeams.addSpectator(event
-//									.getPlayer());
+							// waterfallBattleScoreBoardTeams.addSpectator(event
+							// .getPlayer());
 						}
 
 						// event.getPlayer().setScoreboard(score2.getScoreboard());
@@ -615,15 +613,6 @@ public class WaterfallBattle extends JavaPlugin {
 
 	public void setBlockLocations(ArrayList<Location> blockLocations) {
 		this.blockLocations = blockLocations;
-	}
-
-	public WaterfallBattleScoreBoardTeams getWaterfallBattleScoreBoardTeams() {
-		return waterfallBattleScoreBoardTeams;
-	}
-
-	public void setWaterfallBattleScoreBoardTeams(
-			WaterfallBattleScoreBoardTeams waterfallBattleScoreBoardTeams) {
-		this.waterfallBattleScoreBoardTeams = waterfallBattleScoreBoardTeams;
 	}
 
 	public ArrayList<ItemStack> getItems() {
