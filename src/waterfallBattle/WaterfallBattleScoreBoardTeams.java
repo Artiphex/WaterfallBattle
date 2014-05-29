@@ -3,40 +3,30 @@ package waterfallBattle;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
+import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 
-public class WaterfallBattleScoreBoard2 {
+public class WaterfallBattleScoreBoardTeams {
 
 	private Scoreboard scoreboard;
 	private Objective objective;
 	private Team players;
 	private Team spectators;
-	private Team undefineds;
 
-	public WaterfallBattleScoreBoard2() {
+	public WaterfallBattleScoreBoardTeams() {
 		scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
 
 		objective = scoreboard.registerNewObjective("Role", "dummy");
-		// objective.setDisplaySlot(DisplaySlot.PLAYER_LIST);
+		objective.setDisplaySlot(DisplaySlot.PLAYER_LIST);
 
 		players = scoreboard.registerNewTeam("Players");
-		// players.setPrefix(ChatColor.AQUA.toString());
-		// players.setSuffix(ChatColor.RESET.toString());
-		players.setPrefix("[Player]");
+		players.setPrefix(ChatColor.WHITE + "[" + ChatColor.DARK_GREEN
+				+ "Player" + ChatColor.WHITE + "] " + ChatColor.RESET);
 		spectators = scoreboard.registerNewTeam("Spectators");
-		spectators.setPrefix("[Spectator]");
-		// spectators.setPrefix(ChatColor.YELLOW.toString());
-		// spectators.setSuffix(ChatColor.RESET.toString());
-		undefineds = scoreboard.registerNewTeam("Undefineds");
-		// undefineds.setPrefix(ChatColor.GRAY.toString());
-		// undefineds.setSuffix(ChatColor.RESET.toString());
-	}
-
-	public void addArtiphex(Player player) {
-		player.setDisplayName(ChatColor.LIGHT_PURPLE + player.getName()
-				+ ChatColor.RESET);
+		spectators.setPrefix(ChatColor.WHITE + "[" + ChatColor.YELLOW
+				+ "Spectator" + ChatColor.WHITE + "] " + ChatColor.RESET);
 	}
 
 	public void addPlayer(Player player) {
@@ -50,13 +40,6 @@ public class WaterfallBattleScoreBoard2 {
 		spectators.addPlayer(player);
 		// player.setScoreboard(scoreboard);
 		// player.setDisplayName(ChatColor.YELLOW + player.getName()
-		// + ChatColor.RESET);
-	}
-
-	public void addUndefined(Player player) {
-		undefineds.addPlayer(player);
-		// player.setScoreboard(scoreboard);
-		// player.setDisplayName(ChatColor.GRAY + player.getName()
 		// + ChatColor.RESET);
 	}
 
@@ -90,14 +73,6 @@ public class WaterfallBattleScoreBoard2 {
 
 	public void setSpectators(Team spectators) {
 		this.spectators = spectators;
-	}
-
-	public Team getUndefineds() {
-		return undefineds;
-	}
-
-	public void setUndefineds(Team undefineds) {
-		this.undefineds = undefineds;
 	}
 
 }
