@@ -73,17 +73,21 @@ public class WaterfallBattle extends JavaPlugin {
 
 		items = new ArrayList<ItemStack>();
 		ItemStack slimeBall = new ItemStack(Material.SLIME_BALL);
-		setMeta(slimeBall, "Test", "Erhöht bla");
-
+		setMeta(slimeBall, "§r§9Ball", "§r§7Shoot Up I");
 		items.add(slimeBall);
-		items.add(new ItemStack(Material.MAGMA_CREAM));
+		ItemStack magmaCream = new ItemStack(Material.MAGMA_CREAM);
+		setMeta(magmaCream, "§r§9Ball", "§r§7Shoot Up II");
+		items.add(magmaCream);
 		ItemStack stick = new ItemStack(Material.STICK);
+		setMeta(stick, "§r§9Baton");
 		stick.addUnsafeEnchantment(Enchantment.KNOCKBACK, 1);
 		items.add(stick);
 		ItemStack blazeRod = new ItemStack(Material.BLAZE_ROD);
+		setMeta(blazeRod, "§r§9Baton");
 		blazeRod.addUnsafeEnchantment(Enchantment.KNOCKBACK, 2);
 		items.add(blazeRod);
 		ItemStack goldHelmet = new ItemStack(Material.GOLD_HELMET);
+		setMeta(goldHelmet, "§r§9Diving Hood");
 		goldHelmet.addEnchantment(Enchantment.OXYGEN, 3);
 		items.add(goldHelmet);
 
@@ -220,21 +224,17 @@ public class WaterfallBattle extends JavaPlugin {
 			}
 		}
 
-		itemMenu = new IconMenu("Item Information", size,
+		itemMenu = new IconMenu("Item Informationen", size,
 				new IconMenu.OptionClickEventHandler() {
 
 					@Override
 					public void onOptionClick(IconMenu.OptionClickEvent event) {
-
+						event.setWillClose(true);
 					}
 				}, this);
 
 		for (ItemStack itemStack : items) {
-			itemMenu.setOption(items.indexOf(itemStack), itemStack, itemStack
-					.getItemMeta().getDisplayName(),
-					(itemStack.getItemMeta().getLore() != null ? (itemStack
-							.getItemMeta().getLore().size() > 0 ? itemStack
-							.getItemMeta().getLore().get(0) : "") : ""));
+			itemMenu.setOption(items.indexOf(itemStack), itemStack);
 		}
 
 		world.setDifficulty(Difficulty.PEACEFUL);
@@ -431,8 +431,8 @@ public class WaterfallBattle extends JavaPlugin {
 		player.setFlying(false);
 		player.setGameMode(GameMode.SURVIVAL);
 		player.getInventory().addItem(getInformationBook());
-		ItemStack itemStack = new ItemStack(Material.CHEST);
-		setMeta(itemStack, "Item Informationen");
+		ItemStack itemStack = new ItemStack(Material.BEACON);
+		setMeta(itemStack, "§9Item Informationen");
 		player.getInventory().addItem(itemStack);
 	}
 

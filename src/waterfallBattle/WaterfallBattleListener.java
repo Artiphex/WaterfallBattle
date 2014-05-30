@@ -3,6 +3,7 @@ package waterfallBattle;
 import messages.Messages;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
@@ -35,7 +36,7 @@ public class WaterfallBattleListener implements Listener {
 	public void on(PlayerInteractEvent playerInteractEvent) {
 		if (playerInteractEvent.getItem() != null) {
 			playerInteractEvent.setCancelled(true);
-			if (playerInteractEvent.getItem().getType() == Material.CHEST) {
+			if (playerInteractEvent.getItem().getType() == Material.BEACON) {
 				waterfallBattle.getItemMenu().open(
 						playerInteractEvent.getPlayer());
 			}
@@ -131,6 +132,7 @@ public class WaterfallBattleListener implements Listener {
 
 	@EventHandler
 	public void on(final PlayerPickupItemEvent playerPickupItemEvent) {
+		// TODO
 		if (!waterfallBattle.getPlaying().contains(
 				playerPickupItemEvent.getPlayer())) {
 			playerPickupItemEvent.setCancelled(true);
@@ -160,12 +162,20 @@ public class WaterfallBattleListener implements Listener {
 						}, 600L);
 				playerPickupItemEvent.getItem().remove();
 			}
+			waterfallBattle.send("You picked up a §9"
+					+ playerPickupItemEvent.getItem().getItemStack()
+							.getItemMeta().getDisplayName()
+					+ "\n§rit is automatically equipped");
 		} else if (playerPickupItemEvent.getItem().getItemStack().getType() == Material.SLIME_BALL
 				|| playerPickupItemEvent.getItem().getItemStack().getType() == Material.MAGMA_CREAM) {
-
+			waterfallBattle.send("You picked up a §9"
+					+ playerPickupItemEvent.getItem().getItemStack()
+							.getItemMeta().getDisplayName());
 		} else if (playerPickupItemEvent.getItem().getItemStack().getType() == Material.STICK
 				|| playerPickupItemEvent.getItem().getItemStack().getType() == Material.BLAZE_ROD) {
-
+			waterfallBattle.send("You picked up a §9"
+					+ playerPickupItemEvent.getItem().getItemStack()
+							.getItemMeta().getDisplayName());
 		} else {
 			if (playerPickupItemEvent
 					.getPlayer()
@@ -225,6 +235,14 @@ public class WaterfallBattleListener implements Listener {
 		if (waterfallBattle.getPlaying().contains(player)
 				&& waterfallBattle.getGameStatus() == GameStatus.Game) {
 			waterfallBattle.getScore().update(player);
+			Location location = player.getLocation();
+			if (location.getY() > 250) {
+				Vector vector = player.getVelocity();
+				vector.setY(0.0);
+				location.setY(250);
+				player.setVelocity(vector);
+				player.teleport(location);
+			}
 		}
 	}
 

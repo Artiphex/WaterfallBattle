@@ -42,6 +42,13 @@ public class IconMenu implements Listener {
 		return this;
 	}
 
+	public IconMenu setOption(int position, ItemStack icon) {
+		optionNames[position] = icon.getItemMeta().getDisplayName();
+		optionIcons[position] = icon;
+
+		return this;
+	}
+
 	public void clear() {
 		Arrays.fill(optionNames, null);
 		Arrays.fill(optionIcons, null);
