@@ -51,6 +51,8 @@ public class WaterfallBattle extends JavaPlugin {
 
 	@Override
 	public void onEnable() {
+		LOGGER.warning("The plugin does not support reload.");
+
 		world = Bukkit.getWorld("world");
 		lobbyLocation = new Location(world, 21, 249, 263);
 		spectatorStartLocation = new Location(world, 15.5, 260, 76.5);
@@ -514,6 +516,7 @@ public class WaterfallBattle extends JavaPlugin {
 		player.teleport(spectatorStartLocation);
 		player.setCanPickupItems(false);
 		player.getInventory().addItem(new ItemStack(Material.COMPASS));
+		updateSpectatorMenu();
 	}
 
 	public ItemStack getInformationBook() {
