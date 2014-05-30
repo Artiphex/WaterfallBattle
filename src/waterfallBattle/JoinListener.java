@@ -48,7 +48,8 @@ public class JoinListener implements Listener {
 		if (waterfallBattle.getGameStatus() == GameStatus.Game
 				|| waterfallBattle.getGameStatus() == GameStatus.Starting) {
 			waterfallBattle.updateSpectatorMenu();
-			if (waterfallBattle.getPlaying().size() < 2) {
+			if (waterfallBattle.getPlaying().size() < waterfallBattle
+					.getAmountOfPlayersToStart()) {
 				waterfallBattle.stop();
 			}
 		}
