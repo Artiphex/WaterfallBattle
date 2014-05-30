@@ -1,7 +1,8 @@
 package waterfallBattle;
 
+import messages.Messages;
+
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
@@ -20,6 +21,7 @@ import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.weather.WeatherChangeEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.util.Vector;
 
 public class WaterfallBattleListener implements Listener {
 
@@ -31,15 +33,22 @@ public class WaterfallBattleListener implements Listener {
 
 	@EventHandler
 	public void on(PlayerInteractEvent playerInteractEvent) {
+		if (playerInteractEvent.getItem() != null) {
+			playerInteractEvent.setCancelled(true);
+			if (playerInteractEvent.getItem().getType() == Material.CHEST) {
+				waterfallBattle.getItemMenu().open(
+						playerInteractEvent.getPlayer());
+			}
+		}
 		if (waterfallBattle.getGameStatus() == GameStatus.Game) {
 			if (playerInteractEvent.getItem() != null) {
 				if (playerInteractEvent.getItem().getType() == Material.COMPASS) {
 					waterfallBattle.getSpectatorMenu().open(
 							playerInteractEvent.getPlayer());
 				} else if (playerInteractEvent.getItem().getType() == Material.SLIME_BALL) {
-					upPlayer(playerInteractEvent, 15);
+					upPlayer(playerInteractEvent, 3.0F);
 				} else if (playerInteractEvent.getItem().getType() == Material.MAGMA_CREAM) {
-					upPlayer(playerInteractEvent, 30);
+					upPlayer(playerInteractEvent, 5.0F);
 				}
 			}
 		} else {
@@ -52,28 +61,19 @@ public class WaterfallBattleListener implements Listener {
 						waterfallBattle.getMenu().open(
 								playerInteractEvent.getPlayer());
 					} else {
-						waterfallBattle
-								.send("There are already 9 players you will be allocated to the observers.",
-										playerInteractEvent.getPlayer());
+						waterfallBattle.send(
+								Messages.get("thereAreAlreadyNinePlayers"),
+								playerInteractEvent.getPlayer());
 					}
 				}
 			}
 		}
 	}
 
-	private void upPlayer(PlayerInteractEvent playerInteractEvent,
-			double additionalHeight) {
-		double y = playerInteractEvent.getPlayer().getLocation().getY()
-				+ additionalHeight;
-
-		if (y > 245) {
-			y = 245;
-		}
-
-		Location location = playerInteractEvent.getPlayer().getLocation();
-		location.setY(y);
-
-		playerInteractEvent.getPlayer().teleport(location);
+	private void upPlayer(PlayerInteractEvent playerInteractEvent, float n) {
+		Vector vector = playerInteractEvent.getPlayer().getVelocity();
+		vector.setY(n);
+		playerInteractEvent.getPlayer().setVelocity(vector);
 
 		if (playerInteractEvent.getPlayer().getInventory().getItemInHand()
 				.getAmount() > 1) {
@@ -96,7 +96,6 @@ public class WaterfallBattleListener implements Listener {
 				|| waterfallBattle.getGameStatus() == GameStatus.Game) {
 			playerRespawnEvent.setRespawnLocation(waterfallBattle
 					.getSpectatorStartLocation());
-			waterfallBattle.makeSpectator(playerRespawnEvent.getPlayer());
 		} else {
 			playerRespawnEvent.setRespawnLocation(waterfallBattle
 					.getLobbyLocation());
@@ -105,34 +104,27 @@ public class WaterfallBattleListener implements Listener {
 
 	@EventHandler
 	public void on(PlayerDeathEvent playerDeathEvent) {
-		Player waterfallBattlePlayer = playerDeathEvent.getEntity().getPlayer();
+		Player player = playerDeathEvent.getEntity().getPlayer();
 
 		if (waterfallBattle.getGameStatus() == GameStatus.Game) {
 
-			waterfallBattle.getPlaying()
-					.remove(waterfallBattle.getPlaying().indexOf(
-							waterfallBattlePlayer));
+			waterfallBattle.getPlaying().remove(
+					waterfallBattle.getPlaying().indexOf(player));
+
+			waterfallBattle.makeSpectator(player);
 
 			if (waterfallBattle.getPlaying().size() < 2) {
-				if (waterfallBattle.getPlaying().size() > 0) {
-					waterfallBattle.send(waterfallBattle.getPlaying().get(0)
-							.getPlayer().getName()
-							+ " has won this round!");
-				}
-				waterfallBattle.resetGame();
-				waterfallBattle.setupGame();
-			} else {
-				waterfallBattle.makeSpectator(waterfallBattlePlayer);
+				waterfallBattle.stop();
 			}
 		}
 
 		if (waterfallBattle.getGameStatus() == GameStatus.Game
-				&& !waterfallBattle.getPlaying()
-						.contains(waterfallBattlePlayer)) {
+				&& !waterfallBattle.getPlaying().contains(player)) {
 			playerDeathEvent.setDeathMessage("");
 		} else {
-			playerDeathEvent.setDeathMessage("§f[§bWaterfall Battle§f] §f"
-					+ waterfallBattlePlayer.getPlayer().getName() + " died.");
+			playerDeathEvent.setDeathMessage(Messages.get("waterfallBattleTag")
+					+ " §f" + player.getPlayer().getName()
+					+ Messages.get("died"));
 		}
 
 	}

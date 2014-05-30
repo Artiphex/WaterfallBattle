@@ -1,5 +1,7 @@
 package waterfallBattle;
 
+import messages.Messages;
+
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -18,17 +20,13 @@ public class JoinListener implements Listener {
 	@EventHandler
 	public void onJoin(PlayerJoinEvent playerJoinEvent) {
 		final Player player = playerJoinEvent.getPlayer();
-		// --
-//		player.setScoreboard(waterfallBattle
-//				.getWaterfallBattleScoreBoardTeams().getScoreboard());
-		// --
 
 		waterfallBattle.getPlayers().add(player);
 		waterfallBattle.resetPlayer(player);
 
 		if (waterfallBattle.getGameStatus() == GameStatus.Lobby
 				|| waterfallBattle.getGameStatus() == GameStatus.Startable) {
-			waterfallBattle.lobby(player);
+			player.teleport(waterfallBattle.getLobbyLocation());
 		} else {
 			waterfallBattle.makeSpectator(player);
 		}
@@ -50,13 +48,7 @@ public class JoinListener implements Listener {
 		if (waterfallBattle.getGameStatus() == GameStatus.Game
 				|| waterfallBattle.getGameStatus() == GameStatus.Starting) {
 			if (waterfallBattle.getPlaying().size() < 2) {
-				if (waterfallBattle.getPlaying().size() > 0) {
-					waterfallBattle.send(waterfallBattle.getPlaying().get(0)
-							.getPlayer().getName()
-							+ " " + Messages.get("hasWon"));
-				}
-				waterfallBattle.resetGame();
-				waterfallBattle.setupGame();
+				waterfallBattle.stop();
 			}
 		}
 
@@ -66,8 +58,8 @@ public class JoinListener implements Listener {
 	}
 
 	private String getPlayerCountString() {
-		return "§f[§b" + String.valueOf(Bukkit.getOnlinePlayers().length)
-				+ "§f|§b" + Bukkit.getMaxPlayers() + "§f]";
+		return "§f[§9" + String.valueOf(Bukkit.getOnlinePlayers().length)
+				+ "§f|§9" + Bukkit.getMaxPlayers() + "§f]";
 	}
 
 	public WaterfallBattle getWaterfallBattle() {

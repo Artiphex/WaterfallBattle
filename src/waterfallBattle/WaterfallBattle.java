@@ -5,8 +5,9 @@ import java.util.Arrays;
 import java.util.Random;
 import java.util.logging.Logger;
 
+import messages.Messages;
+
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Difficulty;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -19,12 +20,15 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.util.Vector;
 
 public class WaterfallBattle extends JavaPlugin {
 
-	private static Logger logger;
+	private static final Logger LOGGER = Bukkit.getLogger();
+
 	private World world;
 	private Location lobbyLocation;
 	private Location spectatorStartLocation;
@@ -37,25 +41,23 @@ public class WaterfallBattle extends JavaPlugin {
 	private WaterfallBattleScoreBoard score;
 	private IconMenu menu;
 	private IconMenu spectatorMenu;
+	private IconMenu itemMenu;
 	private ArrayList<Location> blockLocations;
-
-	private ArrayList<ItemStack> items = new ArrayList<ItemStack>();
-	private ArrayList<Material> materials = new ArrayList<Material>();
-	private double[] waterX = new double[] { 14, 15, 15.5, 16.5, 15.5 };
-	private double[] waterZ = new double[] { 76, 77, 75, 76, 76 };
-
+	private ArrayList<ItemStack> items;
+	private ArrayList<Material> materials;
+	private double[] waterX;
+	private double[] waterZ;
 	private int counter;
 
 	@Override
 	public void onEnable() {
-		logger = getLogger();
-		logger.info("[Waterfall Battle] v" + getDescription().getVersion()
-				+ " started");
-
 		world = Bukkit.getWorld("world");
 		lobbyLocation = new Location(world, 21, 249, 263);
 		spectatorStartLocation = new Location(world, 15.5, 260, 76.5);
 		spectatorStartLocation.setPitch(90);
+
+		waterX = new double[] { 14, 15, 15.5, 16.5, 15.5 };
+		waterZ = new double[] { 76, 77, 75, 76, 76 };
 
 		playerStartLocations = new Location[] {
 				new Location(world, 15.5, 253.5, 79.5),
@@ -69,8 +71,11 @@ public class WaterfallBattle extends JavaPlugin {
 		players = new ArrayList<Player>();
 		playing = new ArrayList<Player>();
 
-		items.add(new ItemStack(Material.SLIME_BALL));
-		items.add(new ItemStack(Material.SLIME_BALL));
+		items = new ArrayList<ItemStack>();
+		ItemStack slimeBall = new ItemStack(Material.SLIME_BALL);
+		setMeta(slimeBall, "Test", "Erhöht bla");
+
+		items.add(slimeBall);
 		items.add(new ItemStack(Material.MAGMA_CREAM));
 		ItemStack stick = new ItemStack(Material.STICK);
 		stick.addUnsafeEnchantment(Enchantment.KNOCKBACK, 1);
@@ -82,6 +87,7 @@ public class WaterfallBattle extends JavaPlugin {
 		goldHelmet.addEnchantment(Enchantment.OXYGEN, 3);
 		items.add(goldHelmet);
 
+		materials = new ArrayList<Material>();
 		materials.add(Material.STAINED_CLAY);
 
 		getCommand("start").setExecutor(new CommandExecutor() {
@@ -133,48 +139,44 @@ public class WaterfallBattle extends JavaPlugin {
 
 		blockLocations = new ArrayList<Location>();
 
-		menu = new IconMenu("Choose your role", 9,
+		menu = new IconMenu(Messages.get("chooseYourRole"), 9,
 				new IconMenu.OptionClickEventHandler() {
+
 					@Override
 					public void onOptionClick(IconMenu.OptionClickEvent event) {
 						event.setWillClose(true);
-						if (event.getName().equals("Player")) {
+						if (event.getName().equals(Messages.get("player"))) {
 							if (getPlaying().size() <= 9) {
 								if (playing.contains(event.getPlayer())) {
-									send("You are already a player.",
+									send(Messages.get("youAreAlreadyAPlayer"),
 											event.getPlayer());
 								} else {
 									playing.add(event.getPlayer());
-									send("You have chosen to be a "
-											+ event.getName(),
+									send(Messages
+											.get("youHaveChosenToBeAPlayer"),
 											event.getPlayer());
-									// waterfallBattleScoreBoardTeams
-									// .addPlayer(event.getPlayer());
 								}
 							} else {
-								send("There are already 9 players you will be allocated to the observers.",
+								send(Messages.get("thereAreAlreadyNinePlayers"),
 										event.getPlayer());
 							}
 						} else {
 							if (playing.contains(event.getPlayer())) {
 								playing.remove(event.getPlayer());
 							}
-							send("You have chosen to be a " + event.getName(),
+							send(Messages.get("youHaveChosenToBeASpectator"),
 									event.getPlayer());
-							// waterfallBattleScoreBoardTeams.addSpectator(event
-							// .getPlayer());
 						}
 
-						// event.getPlayer().setScoreboard(score2.getScoreboard());
 					}
 				}, this);
 
-		menu.setOption(3, new ItemStack(Material.IRON_SWORD, 1), "Player",
-				"Become a Player [" + playing.size() + "|9]");
-		menu.setOption(5, new ItemStack(Material.ENDER_PEARL, 1), "Spectator",
-				"Become a Spectator");
+		menu.setOption(3, new ItemStack(Material.IRON_SWORD, 1),
+				Messages.get("player"), Messages.get("becomeAPlayer"));
+		menu.setOption(5, new ItemStack(Material.ENDER_PEARL, 1),
+				Messages.get("spectator"), Messages.get("becomeASpectator"));
 
-		spectatorMenu = new IconMenu("Teleport to a player", 9,
+		spectatorMenu = new IconMenu(Messages.get("teleport"), 9,
 				new IconMenu.OptionClickEventHandler() {
 					@Override
 					public void onOptionClick(IconMenu.OptionClickEvent event) {
@@ -200,77 +202,80 @@ public class WaterfallBattle extends JavaPlugin {
 							location.setPitch(-20);
 							event.getPlayer().teleport(location);
 						} else {
-							send(event.getName() + " is not playing anymore.",
+							send(event.getName() + " "
+									+ Messages.get("isNotplayingAnymore"),
 									event.getPlayer());
 						}
 					}
 				}, this);
 
-		setupGame();
+		int size = 0;
+		int m = 0;
+
+		while (true) {
+			if (items.size() <= size) {
+				break;
+			} else {
+				size = 9 * ++m;
+			}
+		}
+
+		itemMenu = new IconMenu("Item Information", size,
+				new IconMenu.OptionClickEventHandler() {
+
+					@Override
+					public void onOptionClick(IconMenu.OptionClickEvent event) {
+
+					}
+				}, this);
+
+		for (ItemStack itemStack : items) {
+			itemMenu.setOption(items.indexOf(itemStack), itemStack, itemStack
+					.getItemMeta().getDisplayName(),
+					(itemStack.getItemMeta().getLore() != null ? (itemStack
+							.getItemMeta().getLore().size() > 0 ? itemStack
+							.getItemMeta().getLore().get(0) : "") : ""));
+		}
+
+		world.setDifficulty(Difficulty.PEACEFUL);
+		playing.clear();
+		startableDelay = 20;
+		startDelay = 10;
+		gameStatus = GameStatus.Lobby;
+		counter = 0;
+		waterOn();
 
 		Bukkit.getServer().getScheduler()
 				.scheduleSyncRepeatingTask(this, new Runnable() {
 
+					@SuppressWarnings("deprecation")
 					@Override
 					public void run() {
 						world.setTime(6000L);
 						if (gameStatus == GameStatus.Lobby) {
 							if (playing.size() > 1) {
 								gameStatus = GameStatus.Startable;
-								send("The game locks in " + startableDelay);
+								send(Messages.get("theGameStartsIn") + " "
+										+ (startableDelay + startDelay));
 							}
 						} else if (gameStatus == GameStatus.Startable) {
 							startableDelay--;
+
+							if (playing.size() < 2) {
+								gameStatus = GameStatus.Lobby;
+								send(Messages.get("startCanceled"));
+							}
+
 							if (startableDelay < 1) {
 								gameStatus = GameStatus.Starting;
-								send("The game is locked");
-							} else if (startableDelay == 10) {
-								send("The game locks in: " + startableDelay);
 							}
 						} else if (gameStatus == GameStatus.Starting) {
-							send("The game starts in " + startDelay);
+							send(Messages.get("theGameStartsIn") + " "
+									+ startDelay);
 							if (startDelay == 5) {
-								for (int i = 0; i < playing.size(); i++) {
-									Location location = new Location(
-											world,
-											playerStartLocations[i].getX(),
-											playerStartLocations[i].getY() - 1.5,
-											playerStartLocations[i].getZ());
-									centerYaw(playerStartLocations[i]);
-
-									world.getBlockAt(location).setType(
-											Material.STAINED_CLAY);
-									world.getBlockAt(location).setData(
-											(byte) 15);
-
-									playing.get(i).setCanPickupItems(true);
-									playing.get(i).teleport(
-											playerStartLocations[i]);
-								}
-
-								for (Player waterfallBattlePlayer2 : players) {
-									if (!getPlaying().contains(
-											waterfallBattlePlayer2)) {
-										makeSpectator(waterfallBattlePlayer2);
-									}
-								}
+								setupGame();
 							} else if (startDelay < 1) {
-								updateSpectatorMenu();
-
-								for (int i = 0; i < playing.size(); i++) {
-									Location location = new Location(
-											world,
-											playerStartLocations[i].getX(),
-											playerStartLocations[i].getY() - 1.5,
-											playerStartLocations[i].getZ());
-
-									world.getBlockAt(location).setType(
-											Material.AIR);
-								}
-								score.addPlayers(playing);
-								score.setScoreboards(players);
-								gameStatus = GameStatus.Game;
-								send("The game started.");
+								startGame();
 							}
 							startDelay--;
 						} else if (gameStatus == GameStatus.Game) {
@@ -290,7 +295,7 @@ public class WaterfallBattle extends JavaPlugin {
 									location.getBlock().setData((byte) 15);
 
 									blockLocations.add(location);
-									removeBlock(location);
+									removeBlockWithDelay(location);
 								}
 							}
 
@@ -319,80 +324,211 @@ public class WaterfallBattle extends JavaPlugin {
 		for (Location location : blockLocations) {
 			location.getBlock().setType(Material.AIR);
 		}
-		blockLocations.clear();
-
-		logger.info("[Waterfall Battle] v" + getDescription().getVersion()
-				+ " stopped");
 	}
 
-	public void lobby(Player player) {
-		resetPlayer(player);
-		player.teleport(lobbyLocation);
+	/**
+	 * Applys the provided parameters onto the given Itemstack.
+	 * 
+	 * @param itemStack
+	 * @param name
+	 * @param lore
+	 * @return The modified ItemStack
+	 */
+	public ItemStack setMeta(ItemStack itemStack, String name, String... lore) {
+		ItemMeta itemMeta = itemStack.getItemMeta();
+		itemMeta.setDisplayName(name);
+		itemMeta.setLore(Arrays.asList(lore));
+		itemStack.setItemMeta(itemMeta);
+
+		return itemStack;
+	}
+
+	/**
+	 * Sets the game up
+	 */
+	@SuppressWarnings("deprecation")
+	public void setupGame() {
+		for (int i = 0; i < playing.size(); i++) {
+			Location location = new Location(world,
+					playerStartLocations[i].getX(),
+					playerStartLocations[i].getY() - 1.5,
+					playerStartLocations[i].getZ());
+			centerYaw(playerStartLocations[i]);
+
+			world.getBlockAt(location).setType(Material.STAINED_CLAY);
+			world.getBlockAt(location).setData((byte) 15);
+
+			playing.get(i).getInventory().clear();
+
+			playing.get(i).setCanPickupItems(true);
+
+			Vector vector = new Vector(0, 0, 0);
+			playing.get(i).setVelocity(vector);
+			playing.get(i).teleport(playerStartLocations[i]);
+		}
+
+		for (Player player : players) {
+			if (!getPlaying().contains(player)) {
+				makeSpectator(player);
+			}
+		}
+	}
+
+	/**
+	 * Starts the game
+	 */
+	public void startGame() {
+		updateSpectatorMenu();
+
+		for (int i = 0; i < playing.size(); i++) {
+			Location location = new Location(world,
+					playerStartLocations[i].getX(),
+					playerStartLocations[i].getY() - 1.5,
+					playerStartLocations[i].getZ());
+
+			world.getBlockAt(location).setType(Material.AIR);
+		}
+		score.addPlayers(playing);
+		score.setScoreboards(players);
+		gameStatus = GameStatus.Game;
+		send(Messages.get("theGameStarted"));
+	}
+
+	/**
+	 * Returns if possible the winner and stops the game.
+	 */
+	public void stop() {
+		if (playing.size() > 0) {
+			send(playing.get(0).getName() + " " + Messages.get("hasWon"));
+		}
+
+		Bukkit.getScheduler().scheduleSyncDelayedTask(this, new Runnable() {
+
+			@Override
+			public void run() {
+				for (Player player : players) {
+					player.performCommand("hub");
+				}
+				Bukkit.shutdown();
+			}
+		}, 200L);
+	}
+
+	/**
+	 * Resets a player.
+	 * 
+	 * @param player
+	 */
+	public void resetPlayer(Player player) {
+		for (Player player2 : players) {
+			player.showPlayer(player2.getPlayer());
+		}
+		player.getInventory().clear();
+		player.getEquipment().clear();
+		player.resetMaxHealth();
+		player.setCanPickupItems(false);
+		player.setAllowFlight(false);
+		player.setFlying(false);
+		player.setGameMode(GameMode.SURVIVAL);
 		player.getInventory().addItem(getInformationBook());
+		ItemStack itemStack = new ItemStack(Material.CHEST);
+		setMeta(itemStack, "Item Informationen");
+		player.getInventory().addItem(itemStack);
 	}
 
-	public ItemStack getInformationBook() {
-		String about = "Das Spiel wurde von ArtiphexLP entwickelt und programmiert. Wir hoffen, es gefällt euch und wünschen euch ein spannendes Spiel. Bleibt artig!";
-
-		String spiel2 = ChatColor.BOLD
-				+ "Ziel:"
-				+ ChatColor.RESET.toString()
-				+ " Eliminiere die anderen Spieler, indem du sie aus dem Wasserfall schlägst."
-				+ "\n\n"
-				+ ChatColor.BOLD.toString()
-				+ "Klasse:"
-				+ ChatColor.RESET.toString()
-				+ " Wähle deine Klasse mit Rechtsklick auf den Zaubertisch Die Klassen der Gegner siehst du im TAB-Scoreboard.";
-		String spiel1 = ChatColor.BOLD.toString()
-				+ "Start:"
-				+ ChatColor.RESET.toString()
-				+ " Du wirst in Startboxen teleportiert und fällst von Höhe 260."
-				+ "\n\n"
-				+ ChatColor.BOLD.toString()
-				+ "Spezialitems:"
-				+ ChatColor.RESET.toString()
-				+ " Spawnen zufällig im Wasserfall und du kannst sie für ein offensiveren Spiel benutzen.";
-		String spiel3 = ChatColor.BOLD.toString() + "Blöcke:"
-				+ ChatColor.RESET.toString()
-				+ " Hier kannst du dich für einige Sekunden retten.";
-
-		ItemStack book = new ItemStack(Material.WRITTEN_BOOK);
-		BookMeta bookMeta = (BookMeta) book.getItemMeta();
-		bookMeta.setTitle(ChatColor.AQUA + "Game Information");
-		bookMeta.setAuthor(ChatColor.BLACK + "Artiphex");
-		bookMeta.setPages(Arrays.asList(
-				(ChatColor.BLUE.toString() + ChatColor.BOLD.toString()
-						+ "WaterfallBattle" + ChatColor.RESET.toString() + "\n"
-						+ ChatColor.ITALIC + ChatColor.BLACK.toString()
-						+ "Ein Minigame von ArtiphexLP"
-						+ ChatColor.RESET.toString() + "\n" + "\n"
-						+ "1. Das Spiel" + "\n" + "2. Items" + "\n" + "3. Über ArtiphexLP"),
-				(ChatColor.BLUE.toString() + ChatColor.BOLD.toString()
-						+ "Das Spiel" + ChatColor.RESET.toString()
-						+ ChatColor.BLACK.toString() + "\n\n" + spiel2),
-				(ChatColor.BLUE.toString() + ChatColor.BOLD.toString()
-						+ "Das Spiel" + ChatColor.RESET.toString()
-						+ ChatColor.BLACK.toString() + "\n\n" + spiel1),
-				(ChatColor.BLUE.toString() + ChatColor.BOLD.toString()
-						+ "Das Spiel" + ChatColor.RESET.toString()
-						+ ChatColor.BLACK.toString() + "\n\n" + spiel3),
-				(ChatColor.BLUE.toString() + ChatColor.BOLD.toString()
-						+ "Über ArtiphexLP" + ChatColor.RESET.toString()
-						+ ChatColor.BLACK.toString() + "\n\n" + about + "\n\n"
-						+ ChatColor.BLUE.toString() + "www.youtube.com/" + "\n" + "artiphexlp")));
-		book.setItemMeta(bookMeta);
-
-		return book;
-	}
-
+	/**
+	 * Turns the water on.
+	 */
 	public void waterOn() {
 		world.getBlockAt(new Location(world, 15.5, 250.5, 76.5)).setType(
 				Material.WATER);
 	}
 
+	/**
+	 * Turns the water off.
+	 */
 	public void waterOff() {
 		world.getBlockAt(new Location(world, 15.5, 250.5, 76.5)).setType(
 				Material.AIR);
+	}
+
+	/**
+	 * Removes the block at the given location after a certain amount of time.
+	 * 
+	 * @param location
+	 */
+	private void removeBlockWithDelay(final Location location) {
+		Bukkit.getServer().getScheduler()
+				.scheduleSyncDelayedTask(this, new Runnable() {
+
+					@Override
+					public void run() {
+						location.getBlock().setType(Material.AIR);
+						blockLocations.remove(location);
+					}
+				}, (long) (Math.random() * (300 - 200) + 200));
+	}
+
+	/**
+	 * Centers the yaw of the given location.
+	 * 
+	 * @param location
+	 */
+	public void centerYaw(Location location) {
+		location.setYaw((float) (90 + ((Math.atan2(location.getZ() - 76,
+				location.getX() - 15) * 180 / Math.PI))));
+	}
+
+	/**
+	 * Sends the given message to all players on the server with the Waterfall
+	 * Battle tag as prefix.
+	 * 
+	 * @param message
+	 */
+	public void send(String message) {
+		Bukkit.broadcastMessage(Messages.get("waterfallBattleTag") + " "
+				+ message);
+	}
+
+	/**
+	 * Sends the given message to the given player on the server with the
+	 * Waterfall Battle tag as prefix.
+	 * 
+	 * @param message
+	 */
+	public void send(String message, Player player) {
+		player.sendMessage(Messages.get("waterfallBattleTag") + " " + message);
+	}
+
+	/**
+	 * Makes the given player a spectator
+	 * 
+	 * @param player
+	 */
+	public void makeSpectator(Player player) {
+		for (Player player2 : players) {
+			player2.hidePlayer(player);
+		}
+		player.setAllowFlight(true);
+		player.setFlying(true);
+		player.teleport(spectatorStartLocation);
+		player.setCanPickupItems(false);
+		player.getInventory().addItem(new ItemStack(Material.COMPASS));
+	}
+
+	public ItemStack getInformationBook() {
+		ItemStack book = new ItemStack(Material.WRITTEN_BOOK);
+		BookMeta bookMeta = (BookMeta) book.getItemMeta();
+		bookMeta.setTitle(Messages.get("gameInformationTitle"));
+		bookMeta.setAuthor(Messages.get("gameInformationAuthor"));
+		bookMeta.setPages(Arrays.asList((Messages.get("gameInformationPage1")),
+				(Messages.get("gameInformationPage2")),
+				(Messages.get("gameInformationPage3")),
+				(Messages.get("gameInformationPage4")),
+				(Messages.get("gameInformationPage5"))));
+		book.setItemMeta(bookMeta);
+
+		return book;
 	}
 
 	private double getRandom(Random random, int start, int end,
@@ -408,107 +544,17 @@ public class WaterfallBattle extends JavaPlugin {
 		return randomNumber;
 	}
 
-	private void removeBlock(final Location location) {
-		Bukkit.getServer().getScheduler()
-				.scheduleSyncDelayedTask(this, new Runnable() {
-
-					@Override
-					public void run() {
-						location.getBlock().setType(Material.AIR);
-						blockLocations.remove(location);
-					}
-				}, (long) (Math.random() * (300 - 200) + 200));
-	}
-
-	public void centerYaw(Location location) {
-		location.setYaw((float) (90 + ((Math.atan2(location.getZ() - 76,
-				location.getX() - 15) * 180 / Math.PI))));
-	}
-
-	public void send(String string) {
-		Bukkit.broadcastMessage("§f[§bWaterfall Battle§f] §f" + string);
-	}
-
-	public void send(String string, Player waterfallBattlePlayer) {
-		waterfallBattlePlayer.sendMessage("§f[§bWaterfall Battle§f] §f"
-				+ string);
-	}
-
-	public boolean checkForGameEnd() {
-		if (playing.size() < 2) {
-			if (playing.size() > 0) {
-				send(playing.get(0).getName() + " has won this round!");
-			}
-			Bukkit.getScheduler().scheduleSyncDelayedTask(this, new Runnable() {
-
-				@Override
-				public void run() {
-					resetGame();
-					setupGame();
-				}
-			}, 500L);
-			return true;
-		}
-		return false;
-	}
-
-	public void makeSpectator(Player player) {
-		for (Player waterfallBattlePlayer2 : players) {
-			waterfallBattlePlayer2.getPlayer().hidePlayer(player.getPlayer());
-		}
-		player.setAllowFlight(true);
-		player.setFlying(true);
-		player.teleport(spectatorStartLocation);
-		player.setCanPickupItems(false);
-		player.getInventory().addItem(new ItemStack(Material.COMPASS));
-	}
-
 	public void updateSpectatorMenu() {
 		spectatorMenu.clear();
 
 		for (int i = 0; i < playing.size(); i++) {
 			ItemStack itemStack = new ItemStack(Material.SKULL_ITEM);
 			itemStack.setDurability((short) 3);
-			spectatorMenu.setOption(i, itemStack, playing.get(i).getName(),
-					"Teleport to " + playing.get(i).getName());
+			spectatorMenu
+					.setOption(i, itemStack, playing.get(i).getName(),
+							Messages.get("teleportTo") + " "
+									+ playing.get(i).getName());
 		}
-	}
-
-	public void resetPlayer(Player player) {
-		for (Player player2 : players) {
-			player.showPlayer(player2.getPlayer());
-		}
-		player.getInventory().clear();
-		player.getEquipment().clear();
-		player.resetMaxHealth();
-		player.setCanPickupItems(false);
-		player.setAllowFlight(false);
-		player.setFlying(false);
-		player.setGameMode(GameMode.SURVIVAL);
-	}
-
-	public void resetGame() {
-		for (Player waterfallBattlePlayer : players) {
-			resetPlayer(waterfallBattlePlayer);
-			if (!waterfallBattlePlayer.getPlayer().isDead()) {
-				waterfallBattlePlayer.getPlayer().teleport(lobbyLocation);
-			}
-		}
-		for (Location location : blockLocations) {
-			location.getBlock().setType(Material.AIR);
-		}
-		blockLocations.clear();
-		score.reset(playing);
-	}
-
-	public void setupGame() {
-		world.setDifficulty(Difficulty.PEACEFUL);
-		playing.clear();
-		startableDelay = 20;
-		startDelay = 10;
-		gameStatus = GameStatus.Lobby;
-		counter = 0;
-		waterOn();
 	}
 
 	public World getWorld() {
@@ -653,6 +699,14 @@ public class WaterfallBattle extends JavaPlugin {
 
 	public void setCounter(int counter) {
 		this.counter = counter;
+	}
+
+	public IconMenu getItemMenu() {
+		return itemMenu;
+	}
+
+	public void setItemMenu(IconMenu itemMenu) {
+		this.itemMenu = itemMenu;
 	}
 
 }
