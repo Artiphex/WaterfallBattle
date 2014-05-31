@@ -3,4 +3,4 @@
  * 
  * @author Alexander Rohde
  */
-package messages;
+package lang;

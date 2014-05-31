@@ -5,7 +5,7 @@ import java.util.Arrays;
 import java.util.Random;
 import java.util.logging.Logger;
 
-import messages.Messages;
+import lang.Messages;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Difficulty;
@@ -18,6 +18,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -46,9 +47,6 @@ public class WaterfallBattle extends JavaPlugin {
 	private ArrayList<Player> players;
 	private ArrayList<Player> playing;
 	private WaterfallBattleScoreBoard score;
-	private IconMenu menu;
-	private IconMenu spectatorMenu;
-	private IconMenu itemMenu;
 	private ArrayList<Location> blockLocations;
 	private ArrayList<ItemStack> items;
 	private ArrayList<Material> materials;
@@ -93,11 +91,11 @@ public class WaterfallBattle extends JavaPlugin {
 		setMeta(magmaCream, "§r§9Ball", "§r§7Shoot Up II");
 		items.add(magmaCream);
 		ItemStack stick = new ItemStack(Material.STICK);
-		setMeta(stick, "§r§9Baton");
+		setMeta(stick, "§r§9Schläger");
 		stick.addUnsafeEnchantment(Enchantment.KNOCKBACK, 1);
 		items.add(stick);
 		ItemStack blazeRod = new ItemStack(Material.BLAZE_ROD);
-		setMeta(blazeRod, "§r§9Baton");
+		setMeta(blazeRod, "§r§9Schläger");
 		blazeRod.addUnsafeEnchantment(Enchantment.KNOCKBACK, 2);
 		items.add(blazeRod);
 		ItemStack goldHelmet = new ItemStack(Material.GOLD_HELMET);
@@ -154,86 +152,6 @@ public class WaterfallBattle extends JavaPlugin {
 
 		blockLocations = new ArrayList<Location>();
 
-		menu = new IconMenu(Messages.get("chooseYourRole"), 9, new IconMenu.OptionClickEventHandler() {
-
-			@Override
-			public void onOptionClick(IconMenu.OptionClickEvent event) {
-				event.setWillClose(true);
-				if (event.getName().equals(Messages.get("player"))) {
-					if (getPlaying().size() <= 9) {
-						if (playing.contains(event.getPlayer())) {
-							send(Messages.get("youAreAlreadyAPlayer"), event.getPlayer());
-						} else {
-							playing.add(event.getPlayer());
-							send(Messages.get("youHaveChosenToBeAPlayer"), event.getPlayer());
-						}
-					} else {
-						send(Messages.get("thereAreAlreadyNinePlayers"), event.getPlayer());
-					}
-				} else {
-					if (playing.contains(event.getPlayer())) {
-						playing.remove(event.getPlayer());
-					}
-					send(Messages.get("youHaveChosenToBeASpectator"), event.getPlayer());
-				}
-
-			}
-		}, this);
-
-		menu.setOption(3, new ItemStack(Material.IRON_SWORD, 1), Messages.get("player"), Messages.get("becomeAPlayer"));
-		menu.setOption(5, new ItemStack(Material.ENDER_PEARL, 1), Messages.get("spectator"), Messages.get("becomeASpectator"));
-
-		spectatorMenu = new IconMenu(Messages.get("teleport"), 9, new IconMenu.OptionClickEventHandler() {
-			@Override
-			public void onOptionClick(IconMenu.OptionClickEvent event) {
-				event.setWillClose(true);
-
-				Player player = null;
-
-				for (Player player2 : playing) {
-					if (player2.getName().equals(event.getName())) {
-						player = player2;
-						break;
-					}
-				}
-
-				if (player != null) {
-					Location playerLocation = player.getLocation();
-
-					Location location = new Location(world, playerLocation.getX() + 5, playerLocation.getY() - 5,
-							playerLocation.getZ());
-					location.setYaw(90);
-					location.setPitch(-20);
-					event.getPlayer().teleport(location);
-				} else {
-					send(event.getName() + " " + Messages.get("isNotplayingAnymore"), event.getPlayer());
-				}
-			}
-		}, this);
-
-		int size = 0;
-		int m = 0;
-
-		while (true) {
-			if (items.size() <= size) {
-				break;
-			} else {
-				size = size + 9;
-			}
-		}
-
-		itemMenu = new IconMenu("Item Informationen", size, new IconMenu.OptionClickEventHandler() {
-
-			@Override
-			public void onOptionClick(IconMenu.OptionClickEvent event) {
-				event.setWillClose(true);
-			}
-		}, this);
-
-		for (ItemStack itemStack : items) {
-			itemMenu.setOption(items.indexOf(itemStack), itemStack);
-		}
-
 		counter = 0;
 		world.setDifficulty(Difficulty.PEACEFUL);
 		gameStatus = GameStatus.Lobby;
@@ -244,6 +162,8 @@ public class WaterfallBattle extends JavaPlugin {
 			@SuppressWarnings("deprecation")
 			@Override
 			public void run() {
+				world.setTime(6000);
+
 				if (gameStatus == GameStatus.Lobby) {
 					if (playing.size() >= amountOfPlayersToStart) {
 						gameStatus = GameStatus.Startable;
@@ -337,8 +257,6 @@ public class WaterfallBattle extends JavaPlugin {
 			world.getBlockAt(location).setType(Material.STAINED_CLAY);
 			world.getBlockAt(location).setData((byte) 15);
 
-			playing.get(i).getInventory().clear();
-
 			playing.get(i).setCanPickupItems(true);
 
 			Vector vector = new Vector(0, 0, 0);
@@ -347,6 +265,7 @@ public class WaterfallBattle extends JavaPlugin {
 		}
 
 		for (Player player : players) {
+			player.getInventory().clear();
 			if (!getPlaying().contains(player)) {
 				makeSpectator(player);
 			}
@@ -357,8 +276,6 @@ public class WaterfallBattle extends JavaPlugin {
 	 * Starts the game
 	 */
 	public void startGame() {
-		updateSpectatorMenu();
-
 		for (int i = 0; i < playing.size(); i++) {
 			Location location = new Location(world, playerStartLocations[i].getX(), playerStartLocations[i].getY() - 1.5,
 					playerStartLocations[i].getZ());
@@ -389,6 +306,42 @@ public class WaterfallBattle extends JavaPlugin {
 				Bukkit.shutdown();
 			}
 		}, 200L);
+	}
+
+	public void openRoleInventory(Player player) {
+		Inventory roleInventory = Bukkit.createInventory(player, 9, "Role");
+
+		ItemStack sword = new ItemStack(Material.IRON_SWORD);
+		setMeta(sword, Messages.get("player"), Messages.get("becomeAPlayer"));
+		roleInventory.setItem(3, sword);
+
+		ItemStack pearl = new ItemStack(Material.ENDER_PEARL);
+		setMeta(sword, Messages.get("spectator"), Messages.get("becomeASpectator"));
+		roleInventory.setItem(5, pearl);
+
+		player.openInventory(roleInventory);
+	}
+
+	public void openSpectatorInventory(Player player) {
+		Inventory spectatorInventory = Bukkit.createInventory(player, 9, "Teleport");
+
+		for (int i = 0; i < playing.size(); i++) {
+			ItemStack itemStack = new ItemStack(Material.SKULL_ITEM);
+			itemStack.setDurability((short) 3);
+			spectatorInventory.addItem(itemStack);
+		}
+
+		player.openInventory(spectatorInventory);
+	}
+
+	public void openItemViewInventory(Player player) {
+		Inventory inventory = Bukkit.createInventory(player, 9, "Items");
+
+		for (ItemStack itemStack : items) {
+			inventory.addItem(itemStack);
+		}
+
+		player.openInventory(inventory);
 	}
 
 	/**
@@ -478,6 +431,7 @@ public class WaterfallBattle extends JavaPlugin {
 	 * @param player
 	 */
 	public void makeSpectator(Player player) {
+		player.getInventory().clear();
 		for (Player player2 : players) {
 			player2.hidePlayer(player);
 		}
@@ -486,7 +440,6 @@ public class WaterfallBattle extends JavaPlugin {
 		player.teleport(spectatorStartLocation);
 		player.setCanPickupItems(false);
 		player.getInventory().addItem(new ItemStack(Material.COMPASS));
-		updateSpectatorMenu();
 	}
 
 	public ItemStack getInformationBook() {
@@ -511,17 +464,6 @@ public class WaterfallBattle extends JavaPlugin {
 			randomNumber++;
 		}
 		return randomNumber;
-	}
-
-	public void updateSpectatorMenu() {
-		spectatorMenu.clear();
-
-		for (int i = 0; i < playing.size(); i++) {
-			ItemStack itemStack = new ItemStack(Material.SKULL_ITEM);
-			itemStack.setDurability((short) 3);
-			spectatorMenu.setOption(i, itemStack, playing.get(i).getName(), Messages.get("teleportTo") + " "
-					+ playing.get(i).getName());
-		}
 	}
 
 	public World getWorld() {
@@ -596,22 +538,6 @@ public class WaterfallBattle extends JavaPlugin {
 		this.score = score;
 	}
 
-	public IconMenu getMenu() {
-		return menu;
-	}
-
-	public void setMenu(IconMenu menu) {
-		this.menu = menu;
-	}
-
-	public IconMenu getSpectatorMenu() {
-		return spectatorMenu;
-	}
-
-	public void setSpectatorMenu(IconMenu spectatorMenu) {
-		this.spectatorMenu = spectatorMenu;
-	}
-
 	public ArrayList<Location> getBlockLocations() {
 		return blockLocations;
 	}
@@ -660,14 +586,6 @@ public class WaterfallBattle extends JavaPlugin {
 		this.waterOffTimeout = counter;
 	}
 
-	public IconMenu getItemMenu() {
-		return itemMenu;
-	}
-
-	public void setItemMenu(IconMenu itemMenu) {
-		this.itemMenu = itemMenu;
-	}
-
 	public int getWaterOffTimeout() {
 		return waterOffTimeout;
 	}
@@ -706,6 +624,22 @@ public class WaterfallBattle extends JavaPlugin {
 
 	public void setTickLength(long tickLength) {
 		this.tickLength = tickLength;
+	}
+
+	public int getMinBlockExistsTime() {
+		return minBlockExistsTime;
+	}
+
+	public void setMinBlockExistsTime(int minBlockExistsTime) {
+		this.minBlockExistsTime = minBlockExistsTime;
+	}
+
+	public int getMaxBlockExistsTime() {
+		return maxBlockExistsTime;
+	}
+
+	public void setMaxBlockExistsTime(int maxBlockExistsTime) {
+		this.maxBlockExistsTime = maxBlockExistsTime;
 	}
 
 }
