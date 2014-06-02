@@ -20,7 +20,7 @@ public class WaterfallBattleScoreBoard {
 
 		objective = scoreboard.registerNewObjective("Height", "dummy");
 		objective.setDisplaySlot(DisplaySlot.SIDEBAR);
-		objective.setDisplayName("Height");
+		objective.setDisplayName("Höhe");
 
 		team = scoreboard.registerNewTeam("Players");
 	}
