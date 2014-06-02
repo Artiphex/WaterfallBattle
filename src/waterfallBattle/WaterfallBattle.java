@@ -85,21 +85,21 @@ public class WaterfallBattle extends JavaPlugin {
 
 		items = new ArrayList<ItemStack>();
 		ItemStack slimeBall = new ItemStack(Material.SLIME_BALL);
-		setMeta(slimeBall, "§r§9Ball", "§r§7Shoot Up I");
+		setMeta(slimeBall, "ï¿½rï¿½9Ball", "ï¿½rï¿½7Shoot Up I");
 		items.add(slimeBall);
 		ItemStack magmaCream = new ItemStack(Material.MAGMA_CREAM);
-		setMeta(magmaCream, "§r§9Ball", "§r§7Shoot Up II");
+		setMeta(magmaCream, "ï¿½rï¿½9Ball", "ï¿½rï¿½7Shoot Up II");
 		items.add(magmaCream);
 		ItemStack stick = new ItemStack(Material.STICK);
-		setMeta(stick, "§r§9Schläger");
+		setMeta(stick, "ï¿½rï¿½9Schlï¿½ger");
 		stick.addUnsafeEnchantment(Enchantment.KNOCKBACK, 1);
 		items.add(stick);
 		ItemStack blazeRod = new ItemStack(Material.BLAZE_ROD);
-		setMeta(blazeRod, "§r§9Schläger");
+		setMeta(blazeRod, "ï¿½rï¿½9Schlï¿½ger");
 		blazeRod.addUnsafeEnchantment(Enchantment.KNOCKBACK, 2);
 		items.add(blazeRod);
 		ItemStack goldHelmet = new ItemStack(Material.GOLD_HELMET);
-		setMeta(goldHelmet, "§r§9Diving Hood");
+		setMeta(goldHelmet, "ï¿½rï¿½9Taucherhaube);
 		goldHelmet.addEnchantment(Enchantment.OXYGEN, 3);
 		items.add(goldHelmet);
 
@@ -303,7 +303,13 @@ public class WaterfallBattle extends JavaPlugin {
 				for (Player player : players) {
 					player.performCommand("hub");
 				}
-				Bukkit.shutdown();
+				Bukkit.getScheduler().scheduleSyncDelayedTask(this, new Runnable() {
+
+					@Override
+					public void run() {
+						Bukkit.shutdown();
+					}
+				}, 100L);
 			}
 		}, 200L);
 	}
@@ -316,7 +322,7 @@ public class WaterfallBattle extends JavaPlugin {
 		roleInventory.setItem(3, sword);
 
 		ItemStack pearl = new ItemStack(Material.ENDER_PEARL);
-		setMeta(sword, Messages.get("spectator"), Messages.get("becomeASpectator"));
+		setMeta(pearl, Messages.get("spectator"), Messages.get("becomeASpectator"));
 		roleInventory.setItem(5, pearl);
 
 		player.openInventory(roleInventory);
@@ -328,6 +334,7 @@ public class WaterfallBattle extends JavaPlugin {
 		for (int i = 0; i < playing.size(); i++) {
 			ItemStack itemStack = new ItemStack(Material.SKULL_ITEM);
 			itemStack.setDurability((short) 3);
+			setMeta(itemStack, playing.get(i).getName(), "Teleportire dich zu " + playing.get(i).getName());
 			spectatorInventory.addItem(itemStack);
 		}
 
@@ -362,7 +369,7 @@ public class WaterfallBattle extends JavaPlugin {
 		player.setGameMode(GameMode.SURVIVAL);
 		player.getInventory().addItem(getInformationBook());
 		ItemStack itemStack = new ItemStack(Material.BEACON);
-		setMeta(itemStack, "§9Item Informationen");
+		setMeta(itemStack, "ï¿½9Item Informationen");
 		player.getInventory().addItem(itemStack);
 	}
 
