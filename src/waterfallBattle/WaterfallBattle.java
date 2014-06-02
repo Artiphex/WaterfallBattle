@@ -99,7 +99,7 @@ public class WaterfallBattle extends JavaPlugin {
 		blazeRod.addUnsafeEnchantment(Enchantment.KNOCKBACK, 2);
 		items.add(blazeRod);
 		ItemStack goldHelmet = new ItemStack(Material.GOLD_HELMET);
-		setMeta(goldHelmet, "�r�9Taucherhaube);
+		setMeta(goldHelmet, "�r�9Taucherhaube");
 		goldHelmet.addEnchantment(Enchantment.OXYGEN, 3);
 		items.add(goldHelmet);
 
